@@ -1,0 +1,19 @@
+.wrapper {
+  display: grid;
+  grid-template-areas: "explorer editor preview";
+  grid-template-columns: 250px 1fr 1fr;
+  height: 100%;
+}
+
+.fileExplorer {
+  grid-area: explorer;
+  background-color: rgb(24, 24, 24);
+}
+
+.editor {
+  grid-area: editor;
+}
+
+.preview {
+  grid-area: preview;
+}

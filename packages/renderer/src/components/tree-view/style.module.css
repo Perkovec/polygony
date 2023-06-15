@@ -1,0 +1,21 @@
+.wrapper ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.label {
+  padding: 5px 7px;
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  cursor: pointer;
+}
+
+.label:hover {
+  background-color: #2a2d2e;
+}
+
+.chevron {
+  width: 15px;
+}

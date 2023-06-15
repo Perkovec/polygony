@@ -1,0 +1,14 @@
+.fileExplorer {
+  width: 100%;
+  color: #cccccc;
+  font-size: 13px;
+}
+
+.tree,
+.tree :global(ul) {
+  width: 100%;
+}
+
+.tree :global(.tree-view-item):hover {
+  background-color: #2a2d2e;
+}
