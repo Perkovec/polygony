@@ -244,7 +244,7 @@ document.body.onwheel = wheelHandler
     }
 
     const tree = await dirTree(folder, {
-      exclude: [/node_modules/g, /\..*$/g, /\.polygony_temp/g],
+      exclude: [/node_modules/g, /\.polygony_temp/g],
       attributes: ['type'],
       extensions: /\.js$/,
     });

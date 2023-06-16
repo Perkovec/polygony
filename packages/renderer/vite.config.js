@@ -24,6 +24,11 @@ const config = {
     },
   },
   base: '',
+  define: {
+    process: {
+      type: 'browser',
+    },
+  },
   server: {
     fs: {
       strict: true,

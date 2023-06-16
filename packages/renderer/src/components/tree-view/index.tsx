@@ -13,6 +13,7 @@ export interface TreeItem {
 export interface TreeViewProps {
   data: TreeItem[];
   whenClick: (item: TreeItem) => void;
+  whenContextMenu: (event: MouseEvent, item: TreeItem) => void;
 }
 
 export const TreeView = defineComponent({
@@ -24,6 +25,11 @@ export const TreeView = defineComponent({
     },
     whenClick: {
       type: Function as PropType<TreeViewProps['whenClick']>,
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
+      default: () => {},
+    },
+    whenContextMenu: {
+      type: Function as PropType<TreeViewProps['whenContextMenu']>,
       // eslint-disable-next-line @typescript-eslint/no-empty-function
       default: () => {},
     },
@@ -49,6 +55,7 @@ export const TreeView = defineComponent({
           <div
             class={style.label}
             onClick={() => item.type === 'directory' ? handleFolderClick(item) : handleItemClick(item)}
+            onContextmenu={(e) => props.whenContextMenu(e, item)}
           >
             {item.type === 'directory'
               ? <VueFeather class={style.chevron} type={expandedIds.value.includes(item.id) ? 'chevron-down' : 'chevron-right'} />

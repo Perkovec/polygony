@@ -1,5 +1,6 @@
 .fileExplorer {
   width: 100%;
+  height: 100%;
   color: #cccccc;
   font-size: 13px;
 }
@@ -11,4 +12,9 @@
 
 .tree :global(.tree-view-item):hover {
   background-color: #2a2d2e;
+}
+
+.treeView {
+  width: 100%;
+  height: 100%;
 }
