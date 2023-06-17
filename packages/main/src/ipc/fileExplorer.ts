@@ -13,9 +13,9 @@ export class IPCFileExplorer {
   private watcher?: chokidar.FSWatcher;
 
   constructor(private window: BrowserWindow, private server: DevServer) {
-    ipcMain.handle('fileExplorer:readFile', (event: any, path: string) => this.readFile(path));
-    ipcMain.handle('fileExplorer:addFile', (event: any, path: string, filename: string) => this.addFile(path, filename));
-    ipcMain.handle('fileExplorer:addFolder', (event: any, path: string, foldername: string) => this.addFolder(path, foldername));
+    ipcMain.handle('fileExplorer:readFile', (_: unknown, path: string) => this.readFile(path));
+    ipcMain.handle('fileExplorer:addFile', (_: unknown, path: string, filename: string) => this.addFile(path, filename));
+    ipcMain.handle('fileExplorer:addFolder', (_: unknown, path: string, foldername: string) => this.addFolder(path, foldername));
     ipcMain.handle('fileExplorer:getFiles', () => this.getFiles(this.currentFolder!));
   }
 
@@ -25,7 +25,13 @@ export class IPCFileExplorer {
   }
 
   private async addFile(destPath: string, filename: string) {
-    await fs.writeFile(path.join(destPath, filename), '');
+    await fs.writeFile(path.join(destPath, filename),
+`function main() {
+  return [];
+}
+
+export default main;`,
+    );
   }
 
   private async addFolder(destPath: string, foldername: string) {
@@ -94,6 +100,8 @@ export class IPCFileExplorer {
       ignored: [/node_modules/g, /\.polygony_temp/g],
     });
     this.watcher.on('add', (...args) => this.handleWatchAdd(...args));
+    this.watcher.on('addDir', (...args) => this.handleWatchAdd(...args));
     this.watcher.on('unlink', (...args) => this.handleWatchUnlink(...args));
+    this.watcher.on('unlinkDir', (...args) => this.handleWatchUnlink(...args));
   }
 }

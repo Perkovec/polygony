@@ -12,8 +12,10 @@ export const App = defineComponent({
   setup() {
     const editorRef = ref<ComponentPublicInstance<unknown, EditorPublicInstance>>();
     const previewUrl = ref('');
+    const activeFile = ref<TreeItem>();
 
     async function handleFileClick(item: TreeItem) {
+      activeFile.value = item;
       const content = await (window as any).fileExplorer.readFileContent(item.id);
 
       editorRef.value?.setContent(content);
@@ -25,7 +27,7 @@ export const App = defineComponent({
     return () => (
       <div class={style.wrapper}>
         <div class={style.fileExplorer}>
-          <FileExplorer whenClick={handleFileClick}/>
+          <FileExplorer activeFile={activeFile.value} whenClick={handleFileClick}/>
         </div>
 
         <div class={style.editor}>

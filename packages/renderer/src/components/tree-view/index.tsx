@@ -12,8 +12,13 @@ export interface TreeItem {
 
 export interface TreeViewProps {
   data: TreeItem[];
+  activeItem?: TreeItem;
   whenClick: (item: TreeItem) => void;
   whenContextMenu: (event: MouseEvent, item: TreeItem) => void;
+}
+
+export interface TreeViewPublicInstance {
+  collapse: () => void;
 }
 
 export const TreeView = defineComponent({
@@ -22,6 +27,10 @@ export const TreeView = defineComponent({
     data: {
       type: Array as PropType<TreeViewProps['data']>,
       default: () => [],
+    },
+    activeItem: {
+      type: Object as PropType<TreeViewProps['activeItem']>,
+      default: undefined,
     },
     whenClick: {
       type: Function as PropType<TreeViewProps['whenClick']>,
@@ -34,7 +43,7 @@ export const TreeView = defineComponent({
       default: () => {},
     },
   },
-  setup(props) {
+  setup(props, { expose }) {
     const expandedIds = ref<string[]>([]);
 
     function handleItemClick(treeItem: TreeItem) {
@@ -53,7 +62,12 @@ export const TreeView = defineComponent({
       return (
         <li>
           <div
-            class={style.label}
+            class={[
+              style.label,
+              {
+                [style.active]: item.id === props.activeItem?.id,
+              },
+            ]}
             onClick={() => item.type === 'directory' ? handleFolderClick(item) : handleItemClick(item)}
             onContextmenu={(e) => props.whenContextMenu(e, item)}
           >
@@ -62,7 +76,7 @@ export const TreeView = defineComponent({
               : <VueFeather class={style.chevron} type="file-text" />}
             {item.name}
           </div>
-          {expandedIds.value.includes(item.id) && item.children?.length && (
+          {expandedIds.value.includes(item.id) && item.children && item.children?.length > 0 && (
             <ul style={{ paddingLeft: '20px' }}>
               {item.children.map((item) => renderItem(item, level + 1))}
             </ul>
@@ -70,6 +84,15 @@ export const TreeView = defineComponent({
         </li>
       );
     }
+
+    function collapse() {
+      expandedIds.value = [];
+    }
+
+    const instance: TreeViewPublicInstance = {
+      collapse,
+    };
+    expose(instance);
 
     return () => (
       <div class={style.wrapper}>

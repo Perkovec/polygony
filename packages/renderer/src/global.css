@@ -3,6 +3,7 @@ body {
   height: 100vh;
   margin: 0 auto;
   font-family: "Roboto";
+  overflow: hidden;
 }
 
 #app {

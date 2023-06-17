@@ -1,24 +1,18 @@
-import type { PropType} from 'vue';
+import type { ComponentPublicInstance, PropType} from 'vue';
 import { defineComponent } from 'vue';
 import { ref } from 'vue';
-import type dirTree from 'directory-tree';
 import style from './style.module.css';
-import type { TreeItem } from '../tree-view';
+import type { TreeItem, TreeViewPublicInstance } from '../tree-view';
 import { TreeView } from '../tree-view';
 import ContextMenu from '@imengyu/vue3-context-menu';
 import { showPromptModal } from '../modals';
-
-function dirTreeToExplorerTree(treeItem: dirTree.DirectoryTree): TreeItem {
-  return {
-    id: treeItem.path,
-    name: treeItem.name,
-    type: treeItem.type,
-    children: treeItem.children?.map(item => dirTreeToExplorerTree(item)),
-  };
-}
+import VueFeather from 'vue-feather';
+import type dirTree from 'directory-tree';
+import { useFileExplorer } from '/@/store/file-explorer';
 
 export interface FileExplorerProps {
   whenClick: (item: TreeItem) => void;
+  activeFile?: TreeItem;
 }
 
 export const FileExplorer = defineComponent({
@@ -29,49 +23,53 @@ export const FileExplorer = defineComponent({
       // eslint-disable-next-line @typescript-eslint/no-empty-function
       default: () => {},
     },
+    activeFile: {
+      type: Object as PropType<FileExplorerProps['activeFile']>,
+      default: undefined,
+    },
   },
   setup(props) {
-    const items = ref<TreeItem[]>([]);
-    const folderPath = ref('');
+    const fileExplorerStore = useFileExplorer();
 
-    (window as any).fileExplorer.onFolderOpened((event: any, path: string, files: dirTree.DirectoryTree) => {
-      items.value = dirTreeToExplorerTree(files).children || [];
-      folderPath.value = path;
+    const treeViewRef = ref<ComponentPublicInstance<unknown, TreeViewPublicInstance>>();
+
+    window.fileExplorer.onFolderOpened((_: unknown, path: string, files: dirTree.DirectoryTree) => {
+      fileExplorerStore.setDirTree(files);
+      fileExplorerStore.setProjectPath(path);
     });
 
-    (window as any).fileExplorer.onFileAdded(async () => {
-      const files = await (window as any).fileExplorer.getFiles();
-      items.value = dirTreeToExplorerTree(files).children || [];
-    });
-
-    (window as any).fileExplorer.onFileRemoved(async () => {
-      const files = await (window as any).fileExplorer.getFiles();
-      items.value = dirTreeToExplorerTree(files).children || [];
-    });
+    window.fileExplorer.onFileAdded(() => fileExplorerStore.updateFileTree());
+    window.fileExplorer.onFileRemoved(() => fileExplorerStore.updateFileTree());
 
     function getFolderNameFromPath(path: string) {
       return path.split('/').slice(-1)[0];
     }
 
-    function addFile(path: string) {
+    function addFile(path?: string) {
+      if (!path) {
+        return;
+      }
       showPromptModal({
         title: 'Add file',
         message: 'Enter file name',
         onConfirm: (filename: string) => {
           if (filename.length) {
-            (window as any).fileExplorer.addFile(path, filename + '.js');
+            window.fileExplorer.addFile(path, filename + '.js');
           }
         },
       });
     }
 
-    function addFolder(path: string) {
+    function addFolder(path?: string) {
+      if (!path) {
+        return;
+      }
       showPromptModal({
         title: 'Add folder',
         message: 'Enter folder name',
         onConfirm: (foldername: string) => {
           if (foldername.length) {
-            (window as any).fileExplorer.addFolder(path, foldername);
+            window.fileExplorer.addFolder(path, foldername);
           }
         },
       });
@@ -85,6 +83,7 @@ export const FileExplorer = defineComponent({
         ContextMenu.showContextMenu({
           x: event.x,
           y: event.y,
+          theme: 'flat dark',
           items: [
             {
               label: 'Add file',
@@ -103,7 +102,7 @@ export const FileExplorer = defineComponent({
       event.stopPropagation();
       event.preventDefault();
 
-      if (!folderPath.value) {
+      if (!fileExplorerStore.projectPath) {
         return;
       }
 
@@ -114,11 +113,11 @@ export const FileExplorer = defineComponent({
         items: [
           {
             label: 'Add file',
-            onClick: () => addFile(folderPath.value),
+            onClick: () => addFile(fileExplorerStore.projectPath),
           },
           {
             label: 'Add folder',
-            onClick: () => addFolder(folderPath.value),
+            onClick: () => addFolder(fileExplorerStore.projectPath),
           },
         ],
       });
@@ -127,19 +126,38 @@ export const FileExplorer = defineComponent({
     return () => {
       return (
         <div class={style.fileExplorer}>
-          <div class={style.topbar}>
-            <div class={style.projectName}>{getFolderNameFromPath(folderPath.value)}</div>
-          </div>
-          <div
-            class={style.treeView}
-            onContextmenu={handleContainerContextMenu}
-          >
-            <TreeView
-              data={items.value}
-              whenClick={props.whenClick}
-              whenContextMenu={handleContextMenu}
-            />
-          </div>
+          {fileExplorerStore.projectPath && (
+            <>
+              <div class={style.topbar}>
+                <div class={style.projectName}>{getFolderNameFromPath(fileExplorerStore.projectPath)}</div>
+
+                <button class={style.actionButton} onClick={() => addFile(fileExplorerStore.projectPath)}>
+                  <VueFeather class={style.buttonIcon} type="file-plus" />
+                </button>
+                <button class={style.actionButton} onClick={() => addFolder(fileExplorerStore.projectPath)}>
+                  <VueFeather class={style.buttonIcon} type="folder-plus" />
+                </button>
+                <button class={style.actionButton} onClick={() => fileExplorerStore.updateFileTree()}>
+                  <VueFeather class={style.buttonIcon} type="rotate-cw" />
+                </button>
+                <button class={style.actionButton} onClick={() => treeViewRef.value?.collapse()}>
+                  <VueFeather class={style.buttonIcon} type="minus-square" />
+                </button>
+              </div>
+              <div
+                class={style.treeView}
+                onContextmenu={handleContainerContextMenu}
+              >
+                <TreeView
+                  ref={treeViewRef}
+                  data={fileExplorerStore.fileTree}
+                  activeItem={props.activeFile}
+                  whenClick={props.whenClick}
+                  whenContextMenu={handleContextMenu}
+                />
+              </div>
+            </>
+          )}
         </div>
       );
     };

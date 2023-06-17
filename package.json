@@ -57,6 +57,7 @@
     "esbuild": "^0.18.2",
     "feather-icons": "^4.29.0",
     "monaco-editor": "^0.39.0",
+    "pinia": "^2.1.4",
     "portal-vue": "^3.0.0-beta.0",
     "vue-feather": "^2.0.0",
     "vue3-tree-vue": "^1.0.17"
