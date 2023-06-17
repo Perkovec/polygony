@@ -1,4 +1,4 @@
-import type { ComponentPublicInstance, PropType} from 'vue';
+import type { ComponentPublicInstance } from 'vue';
 import { defineComponent } from 'vue';
 import { ref } from 'vue';
 import style from './style.module.css';
@@ -9,27 +9,13 @@ import { showPromptModal } from '../modals';
 import VueFeather from 'vue-feather';
 import type dirTree from 'directory-tree';
 import { useFileExplorer } from '/@/store/file-explorer';
-
-export interface FileExplorerProps {
-  whenClick: (item: TreeItem) => void;
-  activeFile?: TreeItem;
-}
+import { useEditorStore } from '/@/store/editor';
 
 export const FileExplorer = defineComponent({
   name: 'FileExplorer',
-  props: {
-    whenClick: {
-      type: Function as PropType<FileExplorerProps['whenClick']>,
-      // eslint-disable-next-line @typescript-eslint/no-empty-function
-      default: () => {},
-    },
-    activeFile: {
-      type: Object as PropType<FileExplorerProps['activeFile']>,
-      default: undefined,
-    },
-  },
-  setup(props) {
+  setup() {
     const fileExplorerStore = useFileExplorer();
+    const editorStore = useEditorStore();
 
     const treeViewRef = ref<ComponentPublicInstance<unknown, TreeViewPublicInstance>>();
 
@@ -123,6 +109,10 @@ export const FileExplorer = defineComponent({
       });
     }
 
+    function handleItemClick(item: TreeItem) {
+      editorStore.openFile(item.id);
+    }
+
     return () => {
       return (
         <div class={style.fileExplorer}>
@@ -151,8 +141,8 @@ export const FileExplorer = defineComponent({
                 <TreeView
                   ref={treeViewRef}
                   data={fileExplorerStore.fileTree}
-                  activeItem={props.activeFile}
-                  whenClick={props.whenClick}
+                  activeItemId={editorStore.currentFile}
+                  whenClick={handleItemClick}
                   whenContextMenu={handleContextMenu}
                 />
               </div>

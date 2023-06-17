@@ -1,8 +1,9 @@
-import { defineComponent, onMounted, ref } from 'vue';
+import { defineComponent, onMounted, ref, watch } from 'vue';
 import { editor as MonacoEditor } from 'monaco-editor';
 import '/@/lib/editor-themes/one-dark-pro';
 
 import style from './style.module.css';
+import { useEditorStore } from '/@/store/editor';
 
 export interface EditorPublicInstance {
   setContent: (value: string) => void;
@@ -10,7 +11,8 @@ export interface EditorPublicInstance {
 
 export const Editor = defineComponent({
   name: 'Editor',
-  setup(props, { expose }) {
+  setup() {
+    const editorStore = useEditorStore();
     const containerRef = ref<HTMLElement>();
 
     let editor: ReturnType<typeof MonacoEditor.create> | undefined;
@@ -33,15 +35,9 @@ export const Editor = defineComponent({
       });
     });
 
-    function setContent(value: string) {
-      // const model = MonacoEditor.createModel(value);
-      editor?.setValue(value);
-    }
-
-    const instance: EditorPublicInstance = {
-      setContent,
-    };
-    expose(instance);
+    watch(() => editorStore.currentFileContent, (newValue) => {
+      editor?.setValue(newValue || '');
+    });
 
     return () => <div class={style.wrapper} ref={containerRef}></div>;
   },

@@ -12,7 +12,7 @@ export interface TreeItem {
 
 export interface TreeViewProps {
   data: TreeItem[];
-  activeItem?: TreeItem;
+  activeItemId?: string;
   whenClick: (item: TreeItem) => void;
   whenContextMenu: (event: MouseEvent, item: TreeItem) => void;
 }
@@ -28,8 +28,8 @@ export const TreeView = defineComponent({
       type: Array as PropType<TreeViewProps['data']>,
       default: () => [],
     },
-    activeItem: {
-      type: Object as PropType<TreeViewProps['activeItem']>,
+    activeItemId: {
+      type: String as PropType<TreeViewProps['activeItemId']>,
       default: undefined,
     },
     whenClick: {
@@ -65,7 +65,7 @@ export const TreeView = defineComponent({
             class={[
               style.label,
               {
-                [style.active]: item.id === props.activeItem?.id,
+                [style.active]: item.id === props.activeItemId,
               },
             ]}
             onClick={() => item.type === 'directory' ? handleFolderClick(item) : handleItemClick(item)}
