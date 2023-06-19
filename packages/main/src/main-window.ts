@@ -1,8 +1,8 @@
 import {app, BrowserWindow} from 'electron';
 import {join, resolve} from 'node:path';
 import buildMenu from './menu';
-import { IPCFileExplorer } from './ipc/fileExplorer';
-import { DevServer } from './server';
+import { IPCFileExplorer } from './ipc/file-explorer';
+import { IPCDevServer } from './ipc/dev-server';
 
 async function createWindow() {
   const browserWindow = new BrowserWindow({
@@ -66,7 +66,7 @@ export async function restoreOrCreateWindow() {
     window = await createWindow();
   }
 
-  const server = new DevServer();
+  const server = new IPCDevServer(window);
   const fileExplorer = new IPCFileExplorer(window, server);
 
   buildMenu(window, fileExplorer);

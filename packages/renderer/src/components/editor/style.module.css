@@ -2,3 +2,18 @@
   width: 100%;
   height: 100%;
 }
+
+.editorContrainer {
+  width: 100%;
+  height: 100%;
+}
+
+.statusBar {
+  height: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 14px;
+  color: #ccc;
+  background-color: #282c34;
+}

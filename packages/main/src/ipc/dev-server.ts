@@ -1,17 +1,20 @@
 import esbuild from 'esbuild';
 import fs from 'fs/promises';
 import path from 'path';
-import dirTree from 'directory-tree';
+import type dirTree from 'directory-tree';
+import type { BrowserWindow} from 'electron';
 import { ipcMain } from 'electron';
+import fastify from 'fastify';
+import fastifyStatic from '@fastify/static';
 
-export class DevServer {
+export class IPCDevServer {
   private currentFolder?: string;
   private currentFile?: string;
   private esContext?: esbuild.BuildContext;
   private host?: string;
   private port?: number;
 
-  constructor() {
+  constructor(private window: BrowserWindow) {
     ipcMain.handle('devServer:serveFile', (event: any, path: string) => this.setCurrentFile(path));
   }
 
@@ -31,7 +34,7 @@ export class DevServer {
     if (!this.currentFolder) {
       return;
     }
-
+// ${/*path.relative(this.currentFolder, entryPoint)*/}
     const content = `
     <!DOCTYPE html>
     <html lang="en">
@@ -57,7 +60,7 @@ export class DevServer {
       <script src="https://unpkg.com/@jscad/modeling@2.11.1/dist/jscad-modeling.min.js"></script>
       <script src="https://unpkg.com/@jscad/regl-renderer@2.6.6/dist/jscad-regl-renderer.min.js"></script>
       <script type="module">
-        import entry from '/${path.relative(this.currentFolder, entryPoint)}';
+        import entry from './model.js';
 
         const { prepareRender, drawCommands, cameras, controls, entitiesFromSolids } = jscadReglRenderer
         const width = window.innerWidth
@@ -215,6 +218,12 @@ document.body.onpointermove = moveHandler
 document.body.onpointerdown = downHandler
 document.body.onpointerup = upHandler
 document.body.onwheel = wheelHandler
+
+window.addEventListener('message', event => {
+  if (event.data === 'reload') {
+    window.location.reload();
+  }
+});
       </script>
     </body>
     </html>
@@ -223,14 +232,48 @@ document.body.onwheel = wheelHandler
     await fs.writeFile(path.join(this.currentFolder, '.polygony_temp', 'index.html'), content);
   }
 
-  public async setCurrentFile(path: string) {
-    this.currentFile = path;
-    await this.writeIndexHtml(path);
+  public async setCurrentFile(filePath: string) {
+    if (!this.currentFolder) {
+      return;
+    }
 
-    return `http://${this.host}:${this.port}`;
+    this.currentFile = filePath;
+    await this.writeIndexHtml(filePath);
+
+    this.buildCurrentFile();
+
+    // return `http://${this.host}:${this.port}`;
+  }
+
+  public async buildCurrentFile() {
+    if (!this.currentFolder || !this.currentFile) {
+      return;
+    }
+
+    const tempPath = path.join(this.currentFolder, '.polygony_temp', 'model.js');
+    const buildResult = await esbuild.build({
+      entryPoints: [this.currentFile],
+      bundle: true,
+      outfile: tempPath,
+      allowOverwrite: true,
+      format: 'esm',
+    });
+
+    this.window.webContents.send('devServer:updateServer', 'http://localhost:23456');
+    return buildResult;
   }
 
   public async setCurrentFolder(folder: string) {
+    this.currentFolder = folder;
+    const server = fastify();
+    server.register(fastifyStatic, {
+      root: path.join(folder, '.polygony_temp'),
+    });
+
+    server.listen({ port: 23456, host: 'localhost' }, () => {
+      this.window.webContents.send('devServer:updateServer', 'http://localhost:23456');
+    });
+/*
     if (this.esContext) {
       this.esContext.dispose();
       this.esContext = undefined;
@@ -264,6 +307,6 @@ document.body.onwheel = wheelHandler
     });
 
     this.host = host;
-    this.port = port;
+    this.port = port;*/
   }
 }

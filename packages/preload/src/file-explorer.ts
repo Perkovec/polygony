@@ -8,6 +8,7 @@ export const fileExplorerMethods = {
   addFile: (path: string, filename: string) => ipcRenderer.invoke('fileExplorer:addFile', path, filename),
   addFolder: (path: string, foldername: string) => ipcRenderer.invoke('fileExplorer:addFolder', path, foldername),
   getFiles: () => ipcRenderer.invoke('fileExplorer:getFiles'),
+  saveFile: (path: string, newContent: string) => ipcRenderer.invoke('fileExplorer:saveFile', path, newContent),
 };
 
 contextBridge.exposeInMainWorld('fileExplorer', fileExplorerMethods);

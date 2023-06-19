@@ -1,6 +1,6 @@
 import type { BrowserWindow, MenuItemConstructorOptions } from 'electron';
 import { Menu } from 'electron';
-import type { IPCFileExplorer } from './ipc/fileExplorer';
+import type { IPCFileExplorer } from './ipc/file-explorer';
 import { store } from './helpers/store';
 
 export default function buildMenu(window: BrowserWindow, fileExplorer: IPCFileExplorer) {

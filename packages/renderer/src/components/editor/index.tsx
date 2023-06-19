@@ -1,5 +1,5 @@
 import { defineComponent, onMounted, ref, watch } from 'vue';
-import { editor as MonacoEditor } from 'monaco-editor';
+import { editor as MonacoEditor, KeyMod, KeyCode } from 'monaco-editor';
 import '/@/lib/editor-themes/one-dark-pro';
 
 import style from './style.module.css';
@@ -33,12 +33,35 @@ export const Editor = defineComponent({
           enabled: false,
         },
       });
+
+      editor?.onDidChangeModelContent(() => {
+        editorStore.setIsChanged(true);
+      });
+
+      editor.addAction({
+        id: 'save_file',
+        label: 'Save',
+        keybindings: [
+          KeyMod.CtrlCmd | KeyCode.KeyS,
+        ],
+        run: (ed) => {
+          editorStore.saveFile(ed.getValue());
+        },
+      });
     });
 
     watch(() => editorStore.currentFileContent, (newValue) => {
-      editor?.setValue(newValue || '');
+      if (editor?.getValue() !== newValue) {
+        editor?.setValue(newValue || '');
+        editorStore.setIsChanged(false);
+      }
     });
 
-    return () => <div class={style.wrapper} ref={containerRef}></div>;
+    return () => (
+      <div class={style.wrapper}>
+        <div class={style.statusBar}>{editorStore.fileName} {editorStore.isChanged ? <b>*</b> : null}</div>
+        <div class={style.editorContrainer} ref={containerRef}></div>
+      </div>
+    );
   },
 });

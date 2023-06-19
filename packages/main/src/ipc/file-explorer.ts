@@ -6,17 +6,24 @@ import * as chokidar from 'chokidar';
 import path from 'path';
 import { store } from '../helpers/store';
 import fs from 'fs/promises';
-import type { DevServer } from '../server';
+import type { IPCDevServer } from './dev-server';
 
 export class IPCFileExplorer {
   private currentFolder?: string;
   private watcher?: chokidar.FSWatcher;
 
-  constructor(private window: BrowserWindow, private server: DevServer) {
+  constructor(private window: BrowserWindow, private server: IPCDevServer) {
     ipcMain.handle('fileExplorer:readFile', (_: unknown, path: string) => this.readFile(path));
     ipcMain.handle('fileExplorer:addFile', (_: unknown, path: string, filename: string) => this.addFile(path, filename));
     ipcMain.handle('fileExplorer:addFolder', (_: unknown, path: string, foldername: string) => this.addFolder(path, foldername));
     ipcMain.handle('fileExplorer:getFiles', () => this.getFiles(this.currentFolder!));
+    ipcMain.handle('fileExplorer:saveFile', (_: unknown, path: string, newContent: string) => this.saveFile(path, newContent));
+  }
+
+  private async saveFile(path: string, newContent: string) {
+    await fs.writeFile(path, newContent);
+    this.server.buildCurrentFile();
+    return true;
   }
 
   private async readFile(path: string) {

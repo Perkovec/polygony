@@ -3,6 +3,7 @@
   grid-template-areas: "explorer editorContainer";
   grid-template-columns: 250px 1fr;
   height: 100%;
+  max-height: 100vh;
 }
 
 .fileExplorer {
@@ -13,6 +14,7 @@
 .editorContainer {
   grid-area: editorContainer;
   display: flex;
+  max-height: 100vh;
 }
 
 .editor {
