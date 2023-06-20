@@ -9,25 +9,40 @@ export const Preview = defineComponent({
     const previewStore = usePreviewStore();
     const editorStore = useEditorStore();
 
+    const iframeRef = ref<HTMLIFrameElement>();
+
     const url = ref();
 
     onMounted(() => {
       window.devServer.onUpdateServer((_: unknown, address: string) => {
         previewStore.setPreviewUrl(address);
-        url.value = address + '?v=' + new Date().getTime();
+        handlePreviewUrlUpdate();
       });
     });
 
-    watch(
-      () => previewStore.previewUrl,
-      () => {
-        url.value = previewStore.previewUrl + '?v=' + new Date().getTime();
-      },
-    );
+    function handlePreviewUrlUpdate() {
+      const params = new URLSearchParams();
+
+      params.set('v', new Date().getTime().toString());
+
+      const savedCameraState: any = localStorage.getItem(`cameraState:${editorStore.currentFile}`);
+
+      if (savedCameraState) {
+        params.set('state', savedCameraState);
+      }
+
+      url.value = previewStore.previewUrl + '?' + params.toString();
+    }
+
+    function handlePreviewLoad() {
+      iframeRef.value?.contentWindow?.addEventListener('message', (event) => {
+        localStorage.setItem(`cameraState:${editorStore.currentFile}`, event.data);
+      });
+    }
 
     return () => (
       <div class={style.wrapper}>
-        {Boolean(editorStore.currentFile) && <iframe class={style.iframe} src={url.value} />}
+        {Boolean(editorStore.currentFile) && <iframe onLoad={handlePreviewLoad} ref={iframeRef} class={style.iframe} src={url.value} />}
       </div>
     );
   },

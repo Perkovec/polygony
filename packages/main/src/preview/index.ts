@@ -1,4 +1,5 @@
 import entry from './model.js';
+import { debounce } from './utils/debounce.js';
 
 const {prepareRender, drawCommands, cameras, controls, entitiesFromSolids} = jscadReglRenderer;
 const width = window.innerWidth;
@@ -16,6 +17,15 @@ perspectiveCamera.setProjection(camera, camera, {width, height});
 perspectiveCamera.update(camera, camera);
 
 let glControls = orbitControls.defaults;
+
+const queryParams = new URLSearchParams(window.location.search);
+
+if (queryParams.has('state')) {
+  const state: any = JSON.parse(queryParams.get('state')!);
+  glControls = { ...glControls, ...state.controls };
+  camera.view = Object.values(state.camera.view);
+  camera.position = Object.values(state.camera.position);
+}
 
 const options = {
   glOptions: {container: document.body},
@@ -61,6 +71,12 @@ const renderer = prepareRender(options);
 // the heart of rendering, as themes, controls, etc change
 let updateView = true;
 
+function emitCameraPosition(updates: any) {
+  window.postMessage(JSON.stringify(updates));
+}
+
+const debouncedEmitCameraPosition = debounce(emitCameraPosition, 100);
+
 const doRotatePanZoom = () => {
   if (rotateDelta[0] || rotateDelta[1]) {
     const updated = orbitControls.rotate(
@@ -96,7 +112,7 @@ const updateAndRender = timestamp => {
     const updates = orbitControls.update({controls: glControls, camera});
     glControls = {...glControls, ...updates.controls};
     updateView = glControls.changed; // for elasticity in rotate / zoom
-
+    debouncedEmitCameraPosition(updates);
     camera.position = updates.camera.position;
     perspectiveCamera.update(camera);
 
@@ -158,9 +174,3 @@ document.body.onpointermove = moveHandler;
 document.body.onpointerdown = downHandler;
 document.body.onpointerup = upHandler;
 document.body.onwheel = wheelHandler;
-
-window.addEventListener('message', event => {
-  if (event.data === 'reload') {
-    window.location.reload();
-  }
-});

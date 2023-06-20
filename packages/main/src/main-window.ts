@@ -8,6 +8,8 @@ async function createWindow() {
   const browserWindow = new BrowserWindow({
     show: false, // Use the 'ready-to-show' event to show the instantiated BrowserWindow.
     webPreferences: {
+      webSecurity: false,
+      allowRunningInsecureContent: false,
       nodeIntegration: true,
       contextIsolation: true,
       sandbox: false, // Sandbox disabled because the demo of preload script depend on the Node.js api
