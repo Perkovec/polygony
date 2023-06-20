@@ -1,11 +1,14 @@
 import esbuild from 'esbuild';
-import fs from 'fs/promises';
 import path from 'path';
+import fs from 'fs/promises';
 import type dirTree from 'directory-tree';
 import type { BrowserWindow} from 'electron';
 import { ipcMain } from 'electron';
 import fastify from 'fastify';
 import fastifyStatic from '@fastify/static';
+
+import previewJs from '../preview/index?rawBundle';
+import previewHtml from '../preview/index.html?raw';
 
 export class IPCDevServer {
   private currentFolder?: string;
@@ -30,204 +33,12 @@ export class IPCDevServer {
     return array;
   }
 
-  private async writeIndexHtml(entryPoint: string) {
+  private async writeIndexHtml() {
     if (!this.currentFolder) {
       return;
     }
-// ${/*path.relative(this.currentFolder, entryPoint)*/}
-    const content = `
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <meta http-equiv="X-UA-Compatible" content="ie=edge">
-      <title>Document</title>
-      <style>
-        body {
-          margin: 0;
-          width: 100%;
-          height: 100%;
-        }
-        #jscad {
-          width: 100%;
-          height: 100%;
-        }
-      </style>
-    </head>
-    <body>
-      <div id="jscad"></div>
-      <script src="https://unpkg.com/@jscad/modeling@2.11.1/dist/jscad-modeling.min.js"></script>
-      <script src="https://unpkg.com/@jscad/regl-renderer@2.6.6/dist/jscad-regl-renderer.min.js"></script>
-      <script type="module">
-        import entry from './model.js';
 
-        const { prepareRender, drawCommands, cameras, controls, entitiesFromSolids } = jscadReglRenderer
-        const width = window.innerWidth
-        const height = window.innerHeight
-
-        const perspectiveCamera = cameras.perspective
-        const orbitControls = controls.orbit
-
-        // process entities and inject extras
-        const entities = entitiesFromSolids({}, entry())
-
-        // prepare the camera
-        const camera = Object.assign({}, perspectiveCamera.defaults)
-        perspectiveCamera.setProjection(camera, camera, { width, height })
-        perspectiveCamera.update(camera, camera)
-
-        let glControls = orbitControls.defaults;
-
-        const options = {
-          glOptions: { container: document.body },
-          camera,
-          drawCommands: {
-            // draw commands bootstrap themselves the first time they are run
-            drawAxis: drawCommands.drawAxis,
-            drawGrid: drawCommands.drawGrid,
-            drawLines: drawCommands.drawLines,
-            drawMesh: drawCommands.drawMesh
-          },
-          // data
-          entities: [
-            { // grid data
-              // the choice of what draw command to use is also data based
-              visuals: {
-                drawCmd: 'drawGrid',
-                show: true
-              },
-              size: [500, 500],
-              ticks: [25, 5]
-              // color: [0, 0, 1, 1],
-              // subColor: [0, 0, 1, 0.5]
-            },
-            {
-              visuals: {
-                drawCmd: 'drawAxis',
-                show: true
-              },
-              size: 300
-              // alwaysVisible: false,
-              // xColor: [0, 0, 1, 1],
-              // yColor: [1, 0, 1, 1],
-              // zColor: [0, 0, 0, 1]
-            },
-            ...entities
-          ]
-        }
-        // prepare
-        const renderer = prepareRender(options)
-
-
-// the heart of rendering, as themes, controls, etc change
-let updateView = true
-
-const doRotatePanZoom = () => {
-
-  if (rotateDelta[0] || rotateDelta[1]) {
-    const updated = orbitControls.rotate({ controls: glControls, camera, speed: rotateSpeed }, rotateDelta)
-    glControls = { ...glControls, ...updated.controls }
-    updateView = true
-    rotateDelta = [0, 0]
-  }
-
-  if (panDelta[0] || panDelta[1]) {
-    const updated = orbitControls.pan({ controls: glControls, camera, speed: panSpeed }, panDelta)
-    glControls = { ...glControls, ...updated.controls }
-    panDelta = [0, 0]
-    camera.position = updated.camera.position
-    camera.target = updated.camera.target
-    updateView = true
-  }
-
-  if (zoomDelta) {
-    const updated = orbitControls.zoom({ controls: glControls, camera, speed: zoomSpeed }, zoomDelta)
-    glControls = { ...glControls, ...updated.controls }
-    zoomDelta = 0
-    updateView = true
-  }
-}
-
-const updateAndRender = (timestamp) => {
-  doRotatePanZoom()
-
-  if (updateView) {
-    const updates = orbitControls.update({ controls: glControls, camera })
-    glControls = { ...glControls, ...updates.controls }
-    updateView = glControls.changed // for elasticity in rotate / zoom
-
-    camera.position = updates.camera.position
-    perspectiveCamera.update(camera)
-
-    renderer(options)
-  }
-  window.requestAnimationFrame(updateAndRender)
-}
-window.requestAnimationFrame(updateAndRender)
-
-// convert HTML events (mouse movement) to viewer changes
-let lastX = 0
-let lastY = 0
-
-const rotateSpeed = 0.002
-const panSpeed = 1
-const zoomSpeed = 0.08
-let rotateDelta = [0, 0]
-let panDelta = [0, 0]
-let zoomDelta = 0
-let pointerDown = false
-
-const moveHandler = (ev) => {
-  if(!pointerDown) return
-  const dx = lastX - ev.pageX
-  const dy = ev.pageY - lastY
-
-  const shiftKey = (ev.shiftKey === true) || (ev.touches && ev.touches.length > 2)
-  if (shiftKey) {
-    panDelta[0] += dx
-    panDelta[1] += dy
-  } else {
-    rotateDelta[0] -= dx
-    rotateDelta[1] -= dy
-  }
-
-  lastX = ev.pageX
-  lastY = ev.pageY
-
-  ev.preventDefault()
-}
-const downHandler = (ev) => {
-  pointerDown = true
-  lastX = ev.pageX
-  lastY = ev.pageY
-  document.body.setPointerCapture(ev.pointerId)
-}
-
-const upHandler = (ev) => {
-  pointerDown = false
-  document.body.releasePointerCapture(ev.pointerId)
-}
-
-const wheelHandler = (ev) => {
-  zoomDelta += ev.deltaY
-  ev.preventDefault()
-}
-
-document.body.onpointermove = moveHandler
-document.body.onpointerdown = downHandler
-document.body.onpointerup = upHandler
-document.body.onwheel = wheelHandler
-
-window.addEventListener('message', event => {
-  if (event.data === 'reload') {
-    window.location.reload();
-  }
-});
-      </script>
-    </body>
-    </html>
-    `;
+    const content = previewHtml.replace('{PREVIEW_CODE}', previewJs);
 
     await fs.writeFile(path.join(this.currentFolder, '.polygony_temp', 'index.html'), content);
   }
@@ -238,11 +49,8 @@ window.addEventListener('message', event => {
     }
 
     this.currentFile = filePath;
-    await this.writeIndexHtml(filePath);
 
     this.buildCurrentFile();
-
-    // return `http://${this.host}:${this.port}`;
   }
 
   public async buildCurrentFile() {
@@ -265,6 +73,9 @@ window.addEventListener('message', event => {
 
   public async setCurrentFolder(folder: string) {
     this.currentFolder = folder;
+
+    await this.writeIndexHtml();
+
     const server = fastify();
     server.register(fastifyStatic, {
       root: path.join(folder, '.polygony_temp'),
@@ -273,40 +84,5 @@ window.addEventListener('message', event => {
     server.listen({ port: 23456, host: 'localhost' }, () => {
       this.window.webContents.send('devServer:updateServer', 'http://localhost:23456');
     });
-/*
-    if (this.esContext) {
-      this.esContext.dispose();
-      this.esContext = undefined;
-    }
-    this.currentFolder = folder;
-    const tempPath = path.join(folder, '.polygony_temp');
-    try {
-      await fs.access(tempPath);
-    } catch {
-      await fs.mkdir(tempPath);
-    }
-
-    const tree = await dirTree(folder, {
-      exclude: [/node_modules/g, /\.polygony_temp/g],
-      attributes: ['type'],
-      extensions: /\.js$/,
-    });
-
-    this.esContext = await esbuild.context({
-      entryPoints: this.plainArrayFromDirTree(tree),
-      bundle: true,
-      outdir: tempPath,
-      allowOverwrite: true,
-      format: 'esm',
-    });
-
-    await this.esContext.watch();
-
-    const { host, port } = await this.esContext.serve({
-      servedir: tempPath,
-    });
-
-    this.host = host;
-    this.port = port;*/
   }
 }

@@ -30,6 +30,7 @@ Polygony - software for creating solid 3D CAD models using JavaScript (JSCAD lib
 - [ ] Other
     - [ ] App icon
     - [ ] DX
+    - [ ] Autoupdate
 
 ## Development
 

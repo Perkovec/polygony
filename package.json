@@ -24,6 +24,8 @@
     "format": "npx prettier --write \"**/*.{js,mjs,cjs,ts,mts,cts,vue,json}\""
   },
   "devDependencies": {
+    "@chialab/esbuild-plugin-html": "^0.17.3",
+    "@rollup/pluginutils": "^5.0.2",
     "@types/node": "18.16.16",
     "@typescript-eslint/eslint-plugin": "5.59.9",
     "@vitejs/plugin-vue": "4.2.3",
