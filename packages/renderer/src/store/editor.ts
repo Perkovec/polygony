@@ -9,6 +9,7 @@ export const useEditorStore = defineStore('editor', () => {
   const currentFile = ref<string>();
   const currentFileContent = ref<string>();
   const isChanged = ref(false);
+  const tabs = ref<string[]>([]);
 
   /*--------------------*/
   /*-------GETTERS------*/
@@ -32,6 +33,12 @@ export const useEditorStore = defineStore('editor', () => {
     isChanged.value = value;
   }
 
+  function addTab(item: string) {
+    if (!tabs.value.includes(item)) {
+      tabs.value.push(item);
+    }
+  }
+
   /*--------------------*/
   /*-------ACTIONS------*/
   /*--------------------*/
@@ -40,8 +47,34 @@ export const useEditorStore = defineStore('editor', () => {
     const content = await window.fileExplorer.readFileContent(path);
     await window.devServer.serveFile(path);
 
+    addTab(path);
     setCurrentFile(path);
     setCurrentFileContent(content);
+  }
+
+  async function closeFile(path: string) {
+    const pathIndex = tabs.value.indexOf(path);
+    if (pathIndex === -1) {
+      return;
+    }
+
+    if (path === currentFile.value) {
+      let newPath = '';
+      if (tabs.value.length > 1) {
+        const delta = pathIndex > 0 ? -1 : 1;
+        newPath = tabs.value[pathIndex + delta] || '';
+      }
+
+      if (newPath) {
+        await openFile(newPath);
+      } else {
+        setCurrentFile('');
+        setCurrentFileContent('');
+      }
+    }
+
+    tabs.value.splice(pathIndex, 1);
+    tabs.value = [...tabs.value];
   }
 
   async function saveFile(newContent: string) {
@@ -60,6 +93,7 @@ export const useEditorStore = defineStore('editor', () => {
     currentFile,
     currentFileContent,
     isChanged,
+    tabs,
 
     // GETTERS
     fileName,
@@ -72,5 +106,6 @@ export const useEditorStore = defineStore('editor', () => {
     // ACTIONS
     openFile,
     saveFile,
+    closeFile,
   };
 });

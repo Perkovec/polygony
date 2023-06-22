@@ -4,6 +4,7 @@ import '/@/lib/editor-themes/one-dark-pro';
 
 import style from './style.module.css';
 import { useEditorStore } from '/@/store/editor';
+import { TabBar } from '../tabbar';
 
 export interface EditorPublicInstance {
   setContent: (value: string) => void;
@@ -34,19 +35,13 @@ export const Editor = defineComponent({
         },
       });
 
-      editor?.onDidChangeModelContent(() => {
-        editorStore.setIsChanged(true);
-      });
+      editor?.onDidChangeModelContent(() => editorStore.setIsChanged(true));
 
       editor.addAction({
         id: 'save_file',
         label: 'Save',
-        keybindings: [
-          KeyMod.CtrlCmd | KeyCode.KeyS,
-        ],
-        run: (ed) => {
-          editorStore.saveFile(ed.getValue());
-        },
+        keybindings: [KeyMod.CtrlCmd | KeyCode.KeyS],
+        run: (ed) => editorStore.saveFile(ed.getValue()),
       });
     });
 
@@ -57,9 +52,23 @@ export const Editor = defineComponent({
       }
     });
 
+    function handleTabClick(item: string) {
+      editorStore.openFile(item);
+    }
+
+    function handleTabClose(item: string) {
+      editorStore.closeFile(item);
+    }
+
     return () => (
       <div class={style.wrapper}>
-        <div class={style.statusBar}>{editorStore.fileName} {editorStore.isChanged ? <b>*</b> : null}</div>
+        {/*<div class={style.statusBar}>{editorStore.fileName} {editorStore.isChanged ? <b>*</b> : null}</div>*/}
+        <TabBar
+          tabs={editorStore.tabs}
+          activeTab={editorStore.currentFile}
+          whenClick={handleTabClick}
+          whenClose={handleTabClose}
+        />
         <div class={style.editorContrainer} ref={containerRef}></div>
       </div>
     );

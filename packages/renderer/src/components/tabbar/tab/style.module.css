@@ -1,0 +1,45 @@
+.tab {
+  overflow: hidden;
+  color: #bbb;
+  font-size: 14px;
+  padding: 7px 5px 7px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  cursor: pointer;
+  border-right: 1px solid rgba(0, 0, 0, .2);
+}
+
+.tab.active {
+  background: rgb(40, 44, 52);
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  display: inline-flex;
+  padding: 2px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.closeButton:hover {
+  background: rgba(255, 255, 255, .1);
+}
+
+.tab:hover .closeIcon {
+  opacity: 1;
+}
+
+.closeIcon {
+  color: #bbb;
+  opacity: 0;
+  width: 16px;
+}
+
+.fileName {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
