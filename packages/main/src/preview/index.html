@@ -1,28 +1,86 @@
 <!DOCTYPE html>
-    <html lang="en">
-    <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <meta http-equiv="X-UA-Compatible" content="ie=edge">
-      <title>Document</title>
-      <style>
-        body {
-          margin: 0;
-          width: 100%;
-          height: 100%;
-        }
-        #jscad {
-          width: 100%;
-          height: 100%;
-        }
-      </style>
-    </head>
-    <body>
-      <div id="jscad"></div>
-      <script src="https://unpkg.com/@jscad/modeling@2.11.1/dist/jscad-modeling.min.js"></script>
-      <script src="https://unpkg.com/@jscad/regl-renderer@2.6.6/dist/jscad-regl-renderer.min.js"></script>
-      <script type="module">
-        {PREVIEW_CODE}
-      </script>
-    </body>
-    </html>
+  <html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+      body {
+        margin: 0;
+        width: 100vw;
+        height: 100vh;
+        overflow: hidden;
+      }
+      #jscad {
+        width: 100%;
+        height: 100%;
+      }
+    </style>
+    <style>
+      .parametersWrapper {
+        position: fixed;
+        z-index: 10;
+        bottom: 10px;
+        left: 10px;
+        background: #eee;
+        padding: 5px;
+        border-radius: 5px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .parameterField {
+        display: flex;
+        gap: 5px;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      }
+
+      .parameterField > input {
+        flex: 1;
+      }
+
+      .parametersWrapper.noPadding {
+        padding: 0;
+      }
+
+      .parametersButton {
+        margin-left: auto;
+        background: #ccc;
+        border: 1px solid #aaa;
+        padding: 0;
+        width: 20px;
+        height: 20px;
+        text-align: center;
+        vertical-align: middle;
+        cursor: pointer;
+        border-radius: 4px;
+      }
+
+      .parametersButton:hover {
+        background: #bbb;
+      }
+
+      .parametersControls {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        width: 200px;
+      }
+
+      .parametersHeader {
+        display: flex;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="jscad"></div>
+    <div id="parameters"></div>
+    <script src="https://unpkg.com/@jscad/modeling@2.11.1/dist/jscad-modeling.min.js"></script>
+    <script src="https://unpkg.com/@jscad/regl-renderer@2.6.6/dist/jscad-regl-renderer.min.js"></script>
+    <script type="module">
+      {PREVIEW_CODE}
+    </script>
+  </body>
+</html>

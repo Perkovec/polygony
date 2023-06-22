@@ -4,9 +4,11 @@ import type { Stats } from 'fs';
 import dirTree from 'directory-tree';
 import * as chokidar from 'chokidar';
 import path from 'path';
-import { store } from '../helpers/store';
+import { store } from '../../helpers/store';
 import fs from 'fs/promises';
-import type { IPCDevServer } from './dev-server';
+import type { IPCDevServer } from '../dev-server';
+
+import emptyFile from './empty-file.js?raw';
 
 export class IPCFileExplorer {
   private currentFolder?: string;
@@ -32,13 +34,7 @@ export class IPCFileExplorer {
   }
 
   private async addFile(destPath: string, filename: string) {
-    await fs.writeFile(path.join(destPath, filename),
-`function main() {
-  return [];
-}
-
-export default main;`,
-    );
+    await fs.writeFile(path.join(destPath, filename), emptyFile);
   }
 
   private async addFolder(destPath: string, foldername: string) {
