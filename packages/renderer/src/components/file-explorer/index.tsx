@@ -40,7 +40,7 @@ export const FileExplorer = defineComponent({
         message: 'Enter file name',
         onConfirm: (filename: string) => {
           if (filename.length) {
-            window.fileExplorer.addFile(path, filename + '.js');
+            window.fileExplorer.addFile(path, filename + '.ts');
           }
         },
       });

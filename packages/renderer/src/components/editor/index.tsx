@@ -1,6 +1,7 @@
-import { defineComponent, onMounted, ref, watch } from 'vue';
-import { editor as MonacoEditor, KeyMod, KeyCode } from 'monaco-editor';
+import { defineComponent, onMounted, onUnmounted, ref, watch } from 'vue';
+import { editor as MonacoEditor, KeyMod, KeyCode, Uri as MonacoUri } from 'monaco-editor';
 import '/@/lib/editor-themes/one-dark-pro';
+import './register-types';
 
 import style from './style.module.css';
 import { useEditorStore } from '/@/store/editor';
@@ -24,18 +25,21 @@ export const Editor = defineComponent({
       }
 
       editor = MonacoEditor.create(containerRef.value, {
-        value: '',
-        language: 'javascript',
         revealHorizontalRightPadding: 0,
         automaticLayout: true,
         theme: 'OneDark-Pro',
         wordWrap: 'on',
+        model: MonacoEditor.createModel('', 'typescript', MonacoUri.parse('file:///index.ts')),
         minimap: {
           enabled: false,
         },
       });
 
-      editor?.onDidChangeModelContent(() => editorStore.setIsChanged(true));
+      editor?.onDidChangeModelContent(() => {
+        if (editorStore.currentFile) {
+          editorStore.setIsChanged(editorStore.currentFile, true);
+        }
+      });
 
       editor.addAction({
         id: 'save_file',
@@ -45,10 +49,14 @@ export const Editor = defineComponent({
       });
     });
 
+    onUnmounted(() => {
+      editor?.getModel()?.dispose();
+    });
+
     watch(() => editorStore.currentFileContent, (newValue) => {
-      if (editor?.getValue() !== newValue) {
+      if (editor?.getValue() !== newValue && editorStore.currentFile) {
         editor?.setValue(newValue || '');
-        editorStore.setIsChanged(false);
+        editorStore.setIsChanged(editorStore.currentFile, false);
       }
     });
 

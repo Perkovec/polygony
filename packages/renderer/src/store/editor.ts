@@ -1,6 +1,12 @@
 import { defineStore } from 'pinia';
 import { computed, ref } from 'vue';
 
+export interface Tabs {
+  path: string;
+  content: string;
+  isChanged: boolean;
+}
+
 export const useEditorStore = defineStore('editor', () => {
   /*--------------------*/
   /*--------STATE-------*/
@@ -8,8 +14,7 @@ export const useEditorStore = defineStore('editor', () => {
 
   const currentFile = ref<string>();
   const currentFileContent = ref<string>();
-  const isChanged = ref(false);
-  const tabs = ref<string[]>([]);
+  const tabs = ref<Tabs[]>([]);
 
   /*--------------------*/
   /*-------GETTERS------*/
@@ -29,14 +34,20 @@ export const useEditorStore = defineStore('editor', () => {
     currentFileContent.value = content;
   }
 
-  function setIsChanged(value: boolean) {
-    isChanged.value = value;
+  function setIsChanged(path: string, value: boolean) {
+    const foundTab = tabs.value.findIndex(tab => tab.path === path);
+    if (foundTab > -1) {
+      tabs.value[foundTab] = { ...tabs.value[foundTab], isChanged: value };
+    }
+    tabs.value = [...tabs.value];
   }
 
-  function addTab(item: string) {
-    if (!tabs.value.includes(item)) {
-      tabs.value.push(item);
-    }
+  function addTab(item: string, content: string) {
+    tabs.value.push({
+      path: item,
+      content,
+      isChanged: false,
+    });
   }
 
   /*--------------------*/
@@ -44,16 +55,24 @@ export const useEditorStore = defineStore('editor', () => {
   /*--------------------*/
 
   async function openFile(path: string) {
-    const content = await window.fileExplorer.readFileContent(path);
+    const foundTab = tabs.value.find(tab => tab.path === path);
+    let content = '';
+    if (foundTab) {
+      content = foundTab.content;
+    } else {
+      content = await window.fileExplorer.readFileContent(path);
+    }
     await window.devServer.serveFile(path);
 
-    addTab(path);
+    if (!foundTab) {
+      addTab(path, content);
+    }
     setCurrentFile(path);
     setCurrentFileContent(content);
   }
 
   async function closeFile(path: string) {
-    const pathIndex = tabs.value.indexOf(path);
+    const pathIndex = tabs.value.findIndex(tab => tab.path === path);
     if (pathIndex === -1) {
       return;
     }
@@ -62,7 +81,7 @@ export const useEditorStore = defineStore('editor', () => {
       let newPath = '';
       if (tabs.value.length > 1) {
         const delta = pathIndex > 0 ? -1 : 1;
-        newPath = tabs.value[pathIndex + delta] || '';
+        newPath = tabs.value[pathIndex + delta].path || '';
       }
 
       if (newPath) {
@@ -83,7 +102,7 @@ export const useEditorStore = defineStore('editor', () => {
     }
     const result = await window.fileExplorer.saveFile(currentFile.value, newContent);
     if (result) {
-      setIsChanged(false);
+      setIsChanged(currentFile.value, false);
     }
     return result;
   }
@@ -92,7 +111,6 @@ export const useEditorStore = defineStore('editor', () => {
     // STATE
     currentFile,
     currentFileContent,
-    isChanged,
     tabs,
 
     // GETTERS

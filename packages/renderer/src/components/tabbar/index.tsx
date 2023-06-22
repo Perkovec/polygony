@@ -2,9 +2,10 @@ import type { PropType} from 'vue';
 import { defineComponent } from 'vue';
 import style from './style.module.css';
 import { Tab } from './tab';
+import type { Tabs } from '/@/store/editor';
 
 interface Props {
-  tabs?: string[];
+  tabs?: Tabs[];
   activeTab?: string;
   whenClick?: (item: string) => void;
   whenClose?: (item: string) => void;
@@ -37,7 +38,7 @@ export const TabBar = defineComponent({
       <div class={style.wrapper}>
         {props.tabs.map((tab) => <Tab
           item={tab}
-          isActive={tab === props.activeTab}
+          isActive={tab.path === props.activeTab}
           whenClick={props.whenClick}
           whenClose={props.whenClose}
         />)}

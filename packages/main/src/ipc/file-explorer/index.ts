@@ -73,7 +73,7 @@ export class IPCFileExplorer {
   private getFiles(path: string) {
     return dirTree(path, {
       exclude: [/node_modules/g, /\.polygony_temp/g],
-      extensions: /\.js$/,
+      extensions: /\.ts$/,
       attributes: ['size', 'type', 'extension'],
     });
   }

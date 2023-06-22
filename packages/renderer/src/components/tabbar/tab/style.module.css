@@ -43,3 +43,7 @@
   overflow: hidden;
   white-space: nowrap;
 }
+
+.fileName.changed {
+  font-weight: 500;
+}
