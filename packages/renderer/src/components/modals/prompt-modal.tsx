@@ -7,6 +7,7 @@ import VueFeather from 'vue-feather';
 export interface PromptModalProps {
   title?: string;
   message: string;
+  initialValue?: string;
   onConfirm?: (text: string) => void;
   modalApi: ModalAPI;
 }
@@ -22,6 +23,10 @@ export const PromptModal = defineComponent({
       type: String as PropType<PromptModalProps['message']>,
       required: true,
     },
+    initialValue: {
+      type: String as PropType<NonNullable<PromptModalProps['initialValue']>>,
+      default: '',
+    },
     onConfirm: {
       type: Function as PropType<PromptModalProps['onConfirm']>,
       // eslint-disable-next-line @typescript-eslint/no-empty-function
@@ -33,7 +38,7 @@ export const PromptModal = defineComponent({
     },
   },
   setup(props) {
-    const text = ref('');
+    const text = ref(props.initialValue);
 
     function handleConfirm() {
       props.modalApi.close();

@@ -18,4 +18,11 @@ export interface InputControl extends BaseControl {
   }
 }
 
-export type Control = RangeControl | InputControl;
+export interface SelectControl extends BaseControl {
+  control: 'select',
+  options?: {
+    items: { value: string, label: string }[]
+  }
+}
+
+export type Control = RangeControl | InputControl | SelectControl;

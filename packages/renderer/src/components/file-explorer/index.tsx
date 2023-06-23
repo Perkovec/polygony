@@ -4,6 +4,7 @@ import { ref } from 'vue';
 import style from './style.module.css';
 import type { TreeItem, TreeViewPublicInstance } from '../tree-view';
 import { TreeView } from '../tree-view';
+import type { MenuItem } from '@imengyu/vue3-context-menu';
 import ContextMenu from '@imengyu/vue3-context-menu';
 import { showPromptModal } from '../modals';
 import VueFeather from 'vue-feather';
@@ -27,8 +28,9 @@ export const FileExplorer = defineComponent({
     window.fileExplorer.onFileAdded(() => fileExplorerStore.updateFileTree());
     window.fileExplorer.onFileRemoved(() => fileExplorerStore.updateFileTree());
 
-    function getFolderNameFromPath(path: string) {
-      return path.split('/').slice(-1)[0];
+    function getEntityNameFromPath(path: string) {
+      const segments = path.split('/');
+      return segments[segments.length - 1];
     }
 
     function addFile(path?: string) {
@@ -61,27 +63,54 @@ export const FileExplorer = defineComponent({
       });
     }
 
+    function renameItem(item: TreeItem) {
+      const segments = item.id.split('/');
+      let itemName = segments[segments.length - 1];
+      itemName = item.type === 'file' ? itemName.split('.')[0] : itemName;
+
+      const path = segments.slice(0, segments.length - 1).join('/');
+
+      showPromptModal({
+        title: `Rename ${item.type === 'directory' ? 'folder' : 'file'}`,
+        message: `Enter new ${item.type === 'directory' ? 'folder' : 'file'} name`,
+        initialValue: itemName,
+        onConfirm: (name: string) => {
+          if (name.length) {
+            fileExplorerStore.renamePath(
+              item.id,
+              `${path}/${name}${item.type === 'file' ? '.ts' : ''}`,
+              item.type === 'file',
+            );
+          }
+        },
+      });
+    }
+
     function handleContextMenu(event: MouseEvent, item: TreeItem) {
       event.stopPropagation();
       event.preventDefault();
 
-      if (item.type === 'directory') {
-        ContextMenu.showContextMenu({
-          x: event.x,
-          y: event.y,
-          theme: 'flat dark',
-          items: [
-            {
-              label: 'Add file',
-              onClick: () => addFile(item.id),
-            },
-            {
-              label: 'Add folder',
-              onClick: () => addFolder(item.id),
-            },
-          ],
-        });
-      }
+      const items: (MenuItem | false)[] = [
+        item.type === 'directory' && {
+          label: 'Add file',
+          onClick: () => addFile(item.id),
+        },
+        item.type === 'directory' && {
+          label: 'Add folder',
+          onClick: () => addFolder(item.id),
+        },
+        {
+          label: 'Rename',
+          onClick: () => renameItem(item),
+        },
+      ];
+
+      ContextMenu.showContextMenu({
+        x: event.x,
+        y: event.y,
+        theme: 'flat dark',
+        items: items.filter(Boolean) as MenuItem[],
+      });
     }
 
     function handleContainerContextMenu(event: MouseEvent) {
@@ -119,7 +148,7 @@ export const FileExplorer = defineComponent({
           {fileExplorerStore.projectPath && (
             <>
               <div class={style.topbar}>
-                <div class={style.projectName}>{getFolderNameFromPath(fileExplorerStore.projectPath)}</div>
+                <div class={style.projectName}>{getEntityNameFromPath(fileExplorerStore.projectPath)}</div>
 
                 <button class={style.actionButton} onClick={() => addFile(fileExplorerStore.projectPath)}>
                   <VueFeather class={style.buttonIcon} type="file-plus" />

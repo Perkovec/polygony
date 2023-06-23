@@ -13,9 +13,6 @@ import previewHtml from '../preview/index.html?raw';
 export class IPCDevServer {
   private currentFolder?: string;
   private currentFile?: string;
-  private esContext?: esbuild.BuildContext;
-  private host?: string;
-  private port?: number;
 
   constructor(private window: BrowserWindow) {
     ipcMain.handle('devServer:serveFile', (event: any, path: string) => this.setCurrentFile(path));
@@ -71,8 +68,13 @@ export class IPCDevServer {
     return buildResult;
   }
 
+  private createTempDir(folder: string) {
+    return fs.mkdir(path.join(folder, '.polygony_temp'), { recursive: true });
+  }
+
   public async setCurrentFolder(folder: string) {
     this.currentFolder = folder;
+    this.createTempDir(folder);
 
     await this.writeIndexHtml();
 

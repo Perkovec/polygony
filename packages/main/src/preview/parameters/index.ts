@@ -4,6 +4,7 @@ import { useState } from 'preact/compat';
 import type { Control } from './types';
 import { InputParameterControl } from './controls/input';
 import { RangeParameterControl } from './controls/range';
+import { SelectParameterControl } from './controls/select';
 
 interface Props {
   controls: Control[]
@@ -14,6 +15,7 @@ interface Props {
 const controlsComponents = {
   input: InputParameterControl,
   range: RangeParameterControl,
+  select: SelectParameterControl,
 };
 
 const Parameters = ({ controls = [], form, whenChange }: Props) => {

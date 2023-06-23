@@ -1,4 +1,4 @@
-import { defineComponent, onMounted, ref, watch } from 'vue';
+import { defineComponent, onMounted, ref } from 'vue';
 import style from './style.module.css';
 import { usePreviewStore } from '/@/store/preview';
 import { useEditorStore } from '/@/store/editor';

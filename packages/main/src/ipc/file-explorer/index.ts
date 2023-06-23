@@ -20,6 +20,7 @@ export class IPCFileExplorer {
     ipcMain.handle('fileExplorer:addFolder', (_: unknown, path: string, foldername: string) => this.addFolder(path, foldername));
     ipcMain.handle('fileExplorer:getFiles', () => this.getFiles(this.currentFolder!));
     ipcMain.handle('fileExplorer:saveFile', (_: unknown, path: string, newContent: string) => this.saveFile(path, newContent));
+    ipcMain.handle('fileExplorer:renamePath', (_: unknown, path: string, newPath: string) => this.renamePath(path, newPath));
   }
 
   private async saveFile(path: string, newContent: string) {
@@ -39,6 +40,10 @@ export class IPCFileExplorer {
 
   private async addFolder(destPath: string, foldername: string) {
     await fs.mkdir(path.join(destPath, foldername), { recursive: true });
+  }
+
+  public async renamePath(path: string, newPath: string) {
+    await fs.rename(path, newPath);
   }
 
   public async chooseFolder() {

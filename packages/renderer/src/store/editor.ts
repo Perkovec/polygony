@@ -107,6 +107,23 @@ export const useEditorStore = defineStore('editor', () => {
     return result;
   }
 
+  async function updateTabPath(oldPath: string, newPath: string) {
+    const foundTab = tabs.value.findIndex(tab => tab.path === oldPath);
+
+    if (foundTab > -1) {
+      tabs.value[foundTab] = {
+        ...tabs.value[foundTab],
+        path: newPath,
+      };
+      tabs.value = [...tabs.value];
+    }
+
+    if (oldPath === currentFile.value) {
+      setCurrentFile(newPath);
+      await window.devServer.serveFile(newPath);
+    }
+  }
+
   return {
     // STATE
     currentFile,
@@ -125,5 +142,6 @@ export const useEditorStore = defineStore('editor', () => {
     openFile,
     saveFile,
     closeFile,
+    updateTabPath,
   };
 });
