@@ -9,6 +9,7 @@ import fs from 'fs/promises';
 import type { IPCDevServer } from '../dev-server';
 
 import emptyFile from './empty-file.js?raw';
+import { glob } from 'glob';
 
 export class IPCFileExplorer {
   private currentFolder?: string;
@@ -21,6 +22,7 @@ export class IPCFileExplorer {
     ipcMain.handle('fileExplorer:getFiles', () => this.getFiles(this.currentFolder!));
     ipcMain.handle('fileExplorer:saveFile', (_: unknown, path: string, newContent: string) => this.saveFile(path, newContent));
     ipcMain.handle('fileExplorer:renamePath', (_: unknown, path: string, newPath: string) => this.renamePath(path, newPath));
+    ipcMain.handle('fileExplorer:movePath', (_: unknown, targetItem: any, destinationItem: any) => this.movePath(targetItem, destinationItem));
   }
 
   private async saveFile(path: string, newContent: string) {
@@ -44,6 +46,23 @@ export class IPCFileExplorer {
 
   public async renamePath(path: string, newPath: string) {
     await fs.rename(path, newPath);
+  }
+
+  private async movePath(targetItem: any, destinationItem: any) {
+    const destFolder = destinationItem.type === 'directory' ? destinationItem.id : destinationItem.id.split('/').slice(0, -1).join('/');
+
+    const targetParentFolder = targetItem.id.split('/').slice(0, -1).join('/');
+
+    const allFilesToMove = targetItem.type === 'directory' ? await glob(`${targetItem.id}/*`) : [targetItem.id];
+
+    const oldToNewMap: Record<string, string> = {};
+    for (const file of allFilesToMove) {
+      oldToNewMap[file] = file.replace(targetParentFolder, destFolder);
+    }
+
+    await fs.rename(targetItem.id, targetItem.id.replace(targetParentFolder, destFolder));
+
+    return oldToNewMap;
   }
 
   public async chooseFolder() {

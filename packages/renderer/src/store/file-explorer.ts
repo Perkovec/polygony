@@ -49,6 +49,19 @@ export const useFileExplorer = defineStore('fileExplorer', () => {
     }
   }
 
+  async function movePath(targetItem: TreeItem, destinationItem: TreeItem) {
+    const destinationFolder = destinationItem.type === 'directory' ? destinationItem.id : destinationItem.id.split('/').slice(0, -1).join('/');
+    const targetFolder = targetItem.type === 'directory' ? targetItem.id : targetItem.id.split('/').slice(0, -1).join('/');
+
+    if (targetFolder !== destinationFolder) {
+      const oldToNewPathMap = await window.fileExplorer.movePath(JSON.stringify(targetItem), JSON.stringify(destinationItem));
+      for (const [oldPath, newPath] of Object.entries(oldToNewPathMap)) {
+        editorStore.updateTabPath(oldPath, newPath);
+      }
+      await updateFileTree();
+    }
+  }
+
   return {
     // STATE
     projectPath,
@@ -61,5 +74,6 @@ export const useFileExplorer = defineStore('fileExplorer', () => {
     // ACTIONS
     updateFileTree,
     renamePath,
+    movePath,
   };
 });

@@ -142,6 +142,10 @@ export const FileExplorer = defineComponent({
       editorStore.openFile(item.id);
     }
 
+    function handleMove(targetItem: TreeItem, destinationItem: TreeItem) {
+      fileExplorerStore.movePath(targetItem, destinationItem);
+    }
+
     return () => {
       return (
         <div class={style.fileExplorer}>
@@ -173,6 +177,7 @@ export const FileExplorer = defineComponent({
                   activeItemId={editorStore.currentFile}
                   whenClick={handleItemClick}
                   whenContextMenu={handleContextMenu}
+                  whenMove={handleMove}
                 />
               </div>
             </>

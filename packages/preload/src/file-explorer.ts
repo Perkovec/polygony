@@ -10,6 +10,7 @@ export const fileExplorerMethods = {
   getFiles: () => ipcRenderer.invoke('fileExplorer:getFiles'),
   renamePath: (path: string, newPath: string) => ipcRenderer.invoke('fileExplorer:renamePath', path, newPath),
   saveFile: (path: string, newContent: string) => ipcRenderer.invoke('fileExplorer:saveFile', path, newContent),
+  movePath: (targetItem: any, destinationItem: any): Promise<Record<string, string>> => ipcRenderer.invoke('fileExplorer:movePath', JSON.parse(targetItem), JSON.parse(destinationItem)),
 };
 
 contextBridge.exposeInMainWorld('fileExplorer', fileExplorerMethods);
