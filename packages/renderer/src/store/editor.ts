@@ -50,6 +50,13 @@ export const useEditorStore = defineStore('editor', () => {
     });
   }
 
+  function updateTabContent(path: string, content: string) {
+    const foundTab = tabs.value.find(tab => tab.path === path);
+    if (foundTab) {
+      foundTab.content = content;
+    }
+  }
+
   /*--------------------*/
   /*-------ACTIONS------*/
   /*--------------------*/
@@ -102,6 +109,7 @@ export const useEditorStore = defineStore('editor', () => {
     }
     const result = await window.fileExplorer.saveFile(currentFile.value, newContent);
     if (result) {
+      updateTabContent(currentFile.value, newContent);
       setIsChanged(currentFile.value, false);
     }
     return result;

@@ -68,7 +68,7 @@
         display: flex;
         flex-direction: column;
         gap: 5px;
-        width: 200px;
+        min-width: 200px;
       }
 
       .parametersHeader {
@@ -80,6 +80,23 @@
     <div id="jscad"></div>
     <div id="parameters"></div>
     <script src="https://unpkg.com/@jscad/modeling@2.11.1/dist/jscad-modeling.min.js"></script>
+    <script>
+      var colors = jscadModeling.colors;
+      var curves = jscadModeling.curves;
+      var geometries = jscadModeling.geometries;
+      var maths = jscadModeling.maths;
+      var measurements = jscadModeling.measurements;
+      var primitives = jscadModeling.primitives;
+      var text = jscadModeling.text;
+      var utils = jscadModeling.utils;
+
+      var booleans = jscadModeling.booleans;
+      var expansions = jscadModeling.expansions;
+      var extrusions = jscadModeling.extrusions;
+      var hulls = jscadModeling.hulls;
+      var modifiers = jscadModeling.modifiers;
+      var transforms = jscadModeling.transforms;
+    </script>
     <script type="module">
       {PREVIEW_CODE}
     </script>
