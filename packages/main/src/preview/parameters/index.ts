@@ -67,6 +67,12 @@ export const mountParameters = (props: Omit<Props, 'form'>) => {
 
   let form: any = {};
 
+  for (const control of props.controls) {
+    if (control.defaultValue !== undefined) {
+      form[control.id] = control.defaultValue;
+    }
+  }
+
   function handleChange(newForm: any) {
     form = newForm;
     props.whenChange(newForm);

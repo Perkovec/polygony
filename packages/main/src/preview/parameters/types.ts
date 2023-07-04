@@ -4,6 +4,7 @@ export interface BaseControl {
 
 export interface RangeControl extends BaseControl {
   control: 'range',
+  defaultValue?: number,
   options?: {
     min?: number,
     max?: number,
@@ -13,6 +14,7 @@ export interface RangeControl extends BaseControl {
 
 export interface InputControl extends BaseControl {
   control: 'input',
+  defaultValue?: string | number,
   options?: {
     type?: 'number' | 'text',
   }
@@ -20,6 +22,7 @@ export interface InputControl extends BaseControl {
 
 export interface SelectControl extends BaseControl {
   control: 'select',
+  defaultValue?: string,
   options?: {
     items: { value: string, label: string }[]
   }
