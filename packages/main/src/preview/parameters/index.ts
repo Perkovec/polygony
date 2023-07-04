@@ -5,6 +5,7 @@ import type { Control } from './types';
 import { InputParameterControl } from './controls/input';
 import { RangeParameterControl } from './controls/range';
 import { SelectParameterControl } from './controls/select';
+import { SeparatorParameterControl } from './controls/separator';
 
 interface Props {
   controls: Control[]
@@ -16,6 +17,7 @@ const controlsComponents = {
   input: InputParameterControl,
   range: RangeParameterControl,
   select: SelectParameterControl,
+  separator: SeparatorParameterControl,
 };
 
 const Parameters = ({ controls = [], form, whenChange }: Props) => {
@@ -41,7 +43,7 @@ const Parameters = ({ controls = [], form, whenChange }: Props) => {
           return createElement(
             'div',
             { class: 'parameterField' },
-            createElement(
+            control.control !== 'separator' && createElement(
               'label',
               {},
               `${control.id}:`,
@@ -68,7 +70,7 @@ export const mountParameters = (props: Omit<Props, 'form'>) => {
   let form: any = {};
 
   for (const control of props.controls) {
-    if (control.defaultValue !== undefined) {
+    if ('defaultValue' in control && control.defaultValue !== undefined) {
       form[control.id] = control.defaultValue;
     }
   }

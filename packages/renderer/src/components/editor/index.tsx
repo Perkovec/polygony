@@ -28,7 +28,6 @@ export const Editor = defineComponent({
         revealHorizontalRightPadding: 0,
         automaticLayout: true,
         theme: 'OneDark-Pro',
-        wordWrap: 'on',
         model: MonacoEditor.createModel('', 'typescript', MonacoUri.parse('file:///index.ts')),
         minimap: {
           enabled: false,

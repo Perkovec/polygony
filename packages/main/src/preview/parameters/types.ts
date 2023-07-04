@@ -28,4 +28,11 @@ export interface SelectControl extends BaseControl {
   }
 }
 
-export type Control = RangeControl | InputControl | SelectControl;
+export interface SeparatorControl extends BaseControl {
+  control: 'separator',
+  options?: {
+    label?: string
+  }
+}
+
+export type Control = RangeControl | InputControl | SelectControl | SeparatorControl;
